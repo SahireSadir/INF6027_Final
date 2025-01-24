@@ -1,0 +1,123 @@
+# INF6027_Final
+# R scripts and analysis for INF6027 Final Assessment
+#The R code for this study is divided into 4 parts. 
+#To make it clearer and more readable, 6 lines are left between each part.
+
+
+
+#FIRST STEP: DATA IMPORTING & DATA CLEANING
+install.packages("readxl")            #install this package because my datat is in Excel file format
+library(readxl)                       # I successfully installed this package without any errors
+
+#improt my raw dataset(Excel file) from my desktop into the 'asli_filtersiz_putundata' variable in R
+asli_filtersiz_putundata <- read_excel("~/Desktop/Annexes_4-10_2018_v2_website.xlsx")
+head(asli_filtersiz_putundata)            #viewing initial several rows of my original data
+str(asli_filtersiz_putundata)             #viewing the all information like data type of my original data
+colSums(is.na(asli_filtersiz_putundata))  #checking is there any missing data in my original data
+summary(asli_filtersiz_putundata)         #viewing the statistically summary of the all variables in my original data
+colnames(asli_filtersiz_putundata)        #checking the all column's original name
+
+# I removed the missing values and named the cleaned data as "tazlangan_putundata"
+tazlangan_putundata <- na.omit(asli_filtersiz_putundata)
+dim(tazlangan_putundata)
+head(tazlangan_putundata)                   #viewing several rows of my cleaned data
+colSums(is.na(tazlangan_putundata))         #double check there is no missing values in columns
+
+install.packages("writexl")                                    #install this package for saving my cleaned data
+library(writexl)
+write_xlsx(tazlangan_putundata, "tazlangan_putundata.xlsx")    #save my entire final data after cleaning
+
+
+
+
+
+
+#SECOND STEP: EDA & VISUALIZING FOR QUESTION 1 (FIRST AIM OF STUDY)
+#Question 1 (FIRST AIM)
+#I created the new dataset labeled 'question1_brinji_sual1' for Question 1 for my purpose of this study (only storing these 3 columns)
+qestion1_brinji_sual1 <- tazlangan_putundata[, c("Cancer Alliance", "% Curative surgical resection", "Audit years")]
+head(qestion1_brinji_sual1)       #confirm this dataset only containing the columns about exploring the Question 1 for my study
+qestion1_brinji_sual1 <- na.omit(qestion1_brinji_sual1)   #I removed the missing values from this new dataset
+
+#I calculate the mean of '%curative surgical resections' seperately for each `Cancer Alliance` throughout the audit year
+rayunluk_grouping_region <- aggregate(`% Curative surgical resection` ~ `Cancer Alliance`, data = qestion1_brinji_sual1, mean)
+print(rayunluk_grouping_region)   #viewing the mean percentage for every regional area
+
+install.packages("ggplot2")       #install this for visualization for Question 1 of my research aim
+write_xlsx(qestion1_brinji_sual1, "qestion1_brinji_sual1.xlsx")    #save my new dataset for Question 1 first before visualization
+library(writexl)
+
+library(ggplot2)
+# Bar Chart Visualization for Question 1(Fist Aim of this study)
+ggplot(rayunluk_grouping_region, aes(x = `Cancer Alliance`, y = `% Curative surgical resection`, fill = `Cancer Alliance`)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Geographical Differences in Curative Surgical Resection", x = "Region Name", y = "Percentage of Curative Surgical Resection") +
+  theme(axis.text.x = element_text(size = 4, angle = 38, hjust = 1))
+
+# save this bar plot in my desktop named as 'geographical_distribution_surgery_plot'
+ggsave("/Users/sahiresadirjadid/Desktop/geographical_distribution_surgery_plot.png", width = 8, height = 6)
+
+
+
+
+
+
+#THIRD STEP: EDA & VISUALIZING FOR QUESTION 2 (SECOND AIM OF STUDY)
+#Question 2 (SECOND AIM)
+#I created the new dataset labled 'qestion2_ikkinji_sual2' for Question 2 for my purpose of this study (only storing 1 column)
+qestion2_ikkinji_sual2 <- tazlangan_putundata[, c("% Endoscopic treatment")]
+head(qestion2_ikkinji_sual2)    #ensure this new dataset only containing the one column for the Question 2 in this study
+qestion2_ikkinji_sual2 <- na.omit(qestion2_ikkinji_sual2)    #I cleaned the missing values from question 2 dataset
+colSums(is.na(qestion2_ikkinji_sual2))    #just to double check whether missing values still exist in column
+
+#I computed the overall mean of the patients who accepting the treatment during audit period
+total_omomi_average_treat <- mean(qestion2_ikkinji_sual2$`% Endoscopic treatment`, na.rm = TRUE)
+print(total_omomi_average_treat) # viewing
+
+# Histogram Visualization for Question 2 (Second Aim of this study)
+ggplot(qestion2_ikkinji_sual2, aes(x = `% Endoscopic treatment`)) +
+  geom_histogram(binwidth = 0.05, fill = "pink", color = "blue", alpha = 0.7) +
+  theme_minimal() +
+  labs(
+    title = "Allocation of Endoscopic Treatment's Proportion Within Entire Audit Year from 2012 to 2017",
+    x = "Ratio of Endoscopic Treatments",
+    y = "Frequency of Accessing Endoscopic Treatment"
+  )
+
+#save this histogram in my desktop named as 'histogram_endoscopic_allocation'
+ggsave("/Users/sahiresadirjadid/Desktop/histogram_endoscopic_allocation.png", width = 8, height = 6)
+
+
+
+
+
+
+#FORTH STEP: EDA & VISUALIZING FOR QUESTION 3 (THIRD AIM OF STUDY)
+#Question 3 (THIRD AIM)
+#I generated the new dataset labled 'qestion3_uqinji_sual3' for Question 3 for my aim of this research (only storing 2 columns)
+question3_uqinji_sual3 <- tazlangan_putundata[, c("N diagnosed", "% Endoscopic treatment")]
+head(question3_uqinji_sual3)
+question3_uqinji_sual3 <- na.omit(question3_uqinji_sual3)   #I removed the missing data from question 3 dataset
+colSums(is.na(question3_uqinji_sual3))                      #Verify whether missing data still occur
+
+#I calculated the correlation coefficient between `N diagnosed` (Amount of Diagnosed) and `% Endoscopic treatment` (Ratio of adopting endoscopic treatment)
+#'munasiwat_link' is the variable name of correlation result value
+munasiwat_link <- cor(question3_uqinji_sual3$`N diagnosed`, question3_uqinji_sual3$`% Endoscopic treatment`)
+print(munasiwat_link)
+
+## Scatter Plot Visualization for Question 3 (Third Aim of this study)
+ggplot(question3_uqinji_sual3, aes(x = `N diagnosed`, y = `% Endoscopic treatment`)) +
+  geom_point(color = "purple", size = 3) +
+  geom_smooth(method = "lm", color = "orange", se = FALSE) +
+  theme_minimal() +
+  labs(
+    title = "Statistical Association between Number of Diagnosed  and Endoscopic Therapies",
+    x = "Volume of Cancer Diagnosed",
+    y = "Rate of Endoscopic Therapies"
+  )
+
+##save this scatter plot in my personal desktop labeled as 'uqunjisual_scatter'
+ggsave("/Users/sahiresadirjadid/Desktop/uqunjisual_scatter.png", width = 8, height = 6)
+
+
